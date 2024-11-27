@@ -248,17 +248,19 @@ namespace Minesweeper
 
         private void RestartGame()
         {
+            // Логика перезапуска игры
             this.Controls.Clear(); // Очищаем текущие элементы управления
-            timeElapsed = 0; // Сбрасываем время
             CreateButtons(); // Создаем кнопки заново
             PlaceMines(); // Размещаем мины заново
+            timeElapsed = 0; // Сбрасываем время
             StartTimer(); // Запускаем таймер заново
         }
 
-        private void GoToMainMenu()
+            private void GoToMainMenu()
         {
-            this.Close(); // Закрываем текущее окно игры
-            // Здесь можно добавить код для открытия главного меню
+            MenuForm menuForm = new MenuForm();
+            menuForm.ShowDialog(); // Отображаем меню
+            this.Close(); // Закрываем текущую форму
         }
     }
 }
