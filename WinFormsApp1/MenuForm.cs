@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace Minesweeper
@@ -7,28 +8,29 @@ namespace Minesweeper
     {
         public MenuForm()
         {
-            InitializeComponent();
+            InitializeComponent(); // Инициализация компонентов формы
         }
 
         private void btnEasy_Click(object sender, EventArgs e)
         {
-            GameForm gameForm = new GameForm(0); // Легкий уровень
-            gameForm.Show();
-            this.Hide();
+            StartGame(0); // Легкий уровень
         }
 
         private void btnMedium_Click(object sender, EventArgs e)
         {
-            GameForm gameForm = new GameForm(1); // Средний уровень
-            gameForm.Show();
-            this.Hide();
+            StartGame(1); // Средний уровень
         }
 
         private void btnHard_Click(object sender, EventArgs e)
         {
-            GameForm gameForm = new GameForm(2); // Сложный уровень
-            gameForm.Show();
-            this.Hide();
+            StartGame(2); // Сложный уровень
+        }
+
+        private void StartGame(int difficulty)
+        {
+            GameForm gameForm = new GameForm(difficulty); // Создаем новую игру с заданной сложностью
+            gameForm.Show(); // Показываем форму игры
+            this.Hide(); // Скрываем главное меню
         }
     }
 }
