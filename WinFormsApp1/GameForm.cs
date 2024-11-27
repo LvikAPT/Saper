@@ -111,11 +111,21 @@ namespace Minesweeper
 
         private void Button_Click(object sender, EventArgs e)
         {
-            if (isPaused) return; // Игнорируем нажатия, если игра на паузе
-
+            if (isPaused) return;
             Button button = sender as Button;
-            OpenCell(button); // Открываем клетку
-            CheckForWin(); // Проверяем, выиграл ли игрок
+
+            if (button.Tag.Equals(true)) // Если нажата мина
+            {
+                timer.Stop(); // Останавливаем таймер
+                RevealAllMines(); // Открываем все мины
+                MessageBox.Show("Вы проиграли! Игра окончена.", "Поражение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                GoToMainMenu(); // Возвращаемся в главное меню
+            }
+            else
+            {
+                OpenCell(button); // Открываем клетку
+                CheckForWin(); // Проверяем, выиграл ли игрок
+            }
         }
 
         private void Button_MouseDown(object sender, MouseEventArgs e)
@@ -238,7 +248,6 @@ namespace Minesweeper
 
         private void RestartGame()
         {
-            // Логика перезапуска игры
             this.Controls.Clear(); // Очищаем текущие элементы управления
             timeElapsed = 0; // Сбрасываем время
             CreateButtons(); // Создаем кнопки заново
@@ -248,7 +257,6 @@ namespace Minesweeper
 
         private void GoToMainMenu()
         {
-            // Логика возврата в главное меню
             this.Close(); // Закрываем текущее окно игры
             // Здесь можно добавить код для открытия главного меню
         }
