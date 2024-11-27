@@ -6,41 +6,49 @@ namespace Minesweeper
 {
     public partial class GameForm : Form
     {
-        private int rows; // Количество строк
-        private int cols; // Количество столбцов
-        private int mines; // Количество мин
-        private Button[,] buttons; // Массив кнопок
-        private Random random; // Генератор случайных чисел
-        private System.Windows.Forms.Timer timer; // Таймер для отслеживания времени
-        private int timeElapsed; // Время, прошедшее с начала игры
-        private int minesLeft; // Количество оставшихся мин
+        private int rows;
+        private int cols;
+        private int mines;
+        private Button[,] buttons;
+        private Random random;
+        private System.Windows.Forms.Timer timer;
+        private int timeElapsed;
+        private int minesLeft;
         private int cellsLeft; // Количество оставшихся клеток для открытия
-        private bool isPaused = false; // Флаг паузы
+        private bool isPaused = false; // Флаг для отслеживания состояния паузы
 
         public GameForm(int difficulty)
         {
             InitializeComponent();
             random = new Random();
-            SetDifficulty(difficulty); // Установка сложности игры
-            CreateButtons(); // Создание кнопок
-            PlaceMines(); // Размещение мин
-            StartTimer(); // Запуск таймера
-            this.Size = new Size(cols * 30 + 20, rows * 30 + 100); // Установка размера формы
+            SetDifficulty(difficulty);
+            CreateButtons();
+            PlaceMines();
+            StartTimer();
         }
 
         private void SetDifficulty(int difficulty)
         {
             switch (difficulty)
             {
-                case 0: // Легкая сложность
-                    rows = 8; cols = 8; mines = 10; break;
-                case 1: // Средняя сложность
-                    rows = 16; cols = 16; mines = 40; break;
-                case 2: // Сложная сложность
-                    rows = 16; cols = 30; mines = 99; break;
+                case 0: // Easy
+                    rows = 8;
+                    cols = 8;
+                    mines = 10;
+                    break;
+                case 1: // Medium
+                    rows = 16;
+                    cols = 16;
+                    mines = 40;
+                    break;
+                case 2: // Hard
+                    rows = 16;
+                    cols = 30;
+                    mines = 99;
+                    break;
             }
             minesLeft = mines;
-            cellsLeft = rows * cols - mines;
+            cellsLeft = rows * cols - mines; // Общее количество клеток минус мины
         }
 
         private void CreateButtons()
@@ -50,217 +58,163 @@ namespace Minesweeper
             {
                 for (int j = 0; j < cols; j++)
                 {
-                    buttons[i, j] = new Button
-                    {
-                        Size = new Size(30, 30),
-                        Location = new Point(j * 30, i * 30 + 50), // Учитываем место для таймера и кнопок
-                        Tag = false // Изначально не мина
-                    };
+                    buttons[i, j] = new Button();
+                    buttons[i, j].Size = new Size(30, 30);
+                    buttons[i, j].Location = new Point(j * 30, i * 30);
+                    buttons[i, j].Tag = false; // Initially not a mine
                     buttons[i, j].Click += Button_Click;
-                    buttons[i, j].MouseDown += Button_MouseDown;
+                    buttons[i, j].MouseUp += Button_MouseUp;
                     this.Controls.Add(buttons[i, j]);
                 }
             }
-
-            // Добавляем кнопки для перезапуска и выхода в меню
-            Button btnRestart = new Button { Text = "Перезапустить", Location = new Point(10, 10) };
-            btnRestart.Click += (s, e) => RestartGame();
-            this.Controls.Add(btnRestart);
-
-            Button btnMainMenu = new Button { Text = "В меню", Location = new Point(150, 10) };
-            btnMainMenu.Click += (s, e) => GoToMainMenu();
-            this.Controls.Add(btnMainMenu);
         }
 
         private void PlaceMines()
         {
-            int placedMines = 0;
-            while (placedMines < mines)
+            for (int i = 0; i < mines; i++)
             {
-                int row = random.Next(rows);
-                int col = random.Next(cols);
-                if (!(bool)buttons[row, col].Tag) // Если это не мина
+                int x, y;
+                do
                 {
-                    buttons[row, col].Tag = true; // Устанавливаем как мину
-                    placedMines++;
-                }
+                    x = random.Next(cols);
+                    y = random.Next(rows);
+                } while ((bool)buttons[y, x].Tag); // Ensure the cell is not already a mine
+                buttons[y, x].Tag = true; // Mark the cell as a mine
             }
         }
 
         private void StartTimer()
         {
-            timer = new System.Windows.Forms.Timer { Interval = 1000 }; // 1 секунда
+            timer = new System.Windows.Forms.Timer();
+            timer.Interval = 1000; // 1 second
             timer.Tick += Timer_Tick;
             timer.Start();
-        }
-
-        private void Timer_Tick(object sender, EventArgs e)
-        {
-            timeElapsed++;
-            this.Text = $"Сапёр - Время: {timeElapsed} секунд - Осталось мин: {minesLeft}";
-
-            // Проверка на истечение времени
-            if (timeElapsed >= 300) // 5 минут
-            {
-                timer.Stop();
-                MessageBox.Show("Время вышло! Вы проиграли.", "Поражение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                RevealAllMines();
-                GoToMainMenu();
-            }
+            timeElapsed = 0;
         }
 
         private void Button_Click(object sender, EventArgs e)
         {
-            if (isPaused) return;
-            Button button = sender as Button;
-
-            if (button.Tag.Equals(true)) // Если нажата мина
+            Button button = (Button)sender;
+            int x = button.Location.X / 30;
+            int y = button.Location.Y / 30;
+            if ((bool)button.Tag) // If the button is a mine
             {
-                timer.Stop(); // Останавливаем таймер
-                RevealAllMines(); // Открываем все мины
-                MessageBox.Show("Вы проиграли! Игра окончена.", "Поражение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                GoToMainMenu(); // Возвращаемся в главное меню
+                button.Text = "X"; // Reveal the mine
+                GameOver();
             }
             else
             {
-                OpenCell(button); // Открываем клетку
-                CheckForWin(); // Проверяем, выиграл ли игрок
+                int count = CountAdjacentMines(x, y);
+                if (count > 0)
+                {
+                    button.Text = count.ToString(); // Show the count of adjacent mines
+                }
+                else
+                {
+                    button.Enabled = false; // Disable the button
+                    OpenAdjacentCells(x, y); // Open adjacent cells
+                }
+                cellsLeft--;
+                if (cellsLeft == 0) // If all non-mine cells are opened
+                {
+                    WinGame();
+                }
             }
         }
 
-        private void Button_MouseDown(object sender, MouseEventArgs e)
+        private void Button_MouseUp(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Right) // Обработка правого клика для пометки мины
+            if (e.Button == MouseButtons.Right)
             {
-                Button button = sender as Button;
-                if (button.Enabled) // Если клетка еще не открыта
+                Button button = (Button)sender;
+                int x = button.Location.X / 30;
+                int y = button.Location.Y / 30;
+                if (button.Text == "")
                 {
-                    button.BackColor = button.BackColor == Color.Red ? SystemColors.Control : Color.Red; // Меняем цвет для пометки
+                    button.Text = "?"; // Mark the cell as suspected
+                }
+                else if (button.Text == "?")
+                {
+                    button.Text = ""; // Unmark the cell
                 }
             }
         }
 
-        private void OpenCell(Button button)
-        {
-            if (button.Enabled && button.Tag.Equals(false)) // Если клетка не открыта и не является миной
-            {
-                button.Enabled = false; // Отключаем кнопку
-                button.BackColor = Color.LightGray; // Меняем цвет на серый
-                cellsLeft--; // Уменьшаем количество оставшихся клеток
-
-                // Подсчитываем количество соседних мин
-                int adjacentMines = CountAdjacentMines(button);
-                if (adjacentMines > 0) // Если есть соседние мины
-                {
-                    button.ForeColor = GetColorForMineCount(adjacentMines); // Устанавливаем цвет текста
-                    button.Text = adjacentMines.ToString(); // Отображаем количество соседних мин
-                }
-                else // Если соседних мин нет
-                {
-                    // Открываем все соседние клетки
-                    for (int i = -1; i <= 1; i++)
-                    {
-                        for (int j = -1; j <= 1; j++)
-                        {
-                            // Пропускаем саму клетку
-                            if (i == 0 && j == 0) continue;
-
-                            int newRow = (button.Location.Y - 50) / 30 + i; // Корректируем Y-координату
-                            int newCol = button.Location.X / 30 + j; // Корректируем X-координату
-
-                            // Проверяем границы массива
-                            if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols)
-                            {
-                                OpenCell(buttons[newRow, newCol]); // Рекурсивно открываем соседние клетки
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private int CountAdjacentMines(Button button)
+        private int CountAdjacentMines(int x, int y)
         {
             int count = 0;
-            int row = (button.Location.Y - 50) / 30; // Корректируем Y-координату
-            int col = button.Location.X / 30; // Корректируем X-координату
-
-            // Проверяем все соседние клетки
             for (int i = -1; i <= 1; i++)
             {
                 for (int j = -1; j <= 1; j++)
                 {
-                    // Пропускаем саму клетку
-                    if (i == 0 && j == 0) continue;
-
-                    int newRow = row + i;
-                    int newCol = col + j;
-
-                    // Проверяем границы массива
-                    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols)
+                    int adjacentX = x + j;
+                    int adjacentY = y + i;
+                    if (adjacentX >= 0 && adjacentX < cols && adjacentY >= 0 && adjacentY < rows)
                     {
-                        if (buttons[newRow, newCol].Tag.Equals(true)) // Если это мина
+                        if ((bool)buttons[adjacentY, adjacentX].Tag)
                         {
                             count++;
                         }
                     }
                 }
             }
-            return count; // Возвращаем количество соседних мин
+            return count;
         }
 
-        private Color GetColorForMineCount(int count)
+        private void OpenAdjacentCells(int x, int y)
         {
-            switch (count)
+            for (int i = -1; i <= 1; i++)
             {
-                case 1: return Color.Blue; // 1 мина
-                case 2: return Color.Green; // 2 мины
-                case 3: return Color.Red; // 3 мины
-                case 4: return Color.DarkBlue; // 4 мины
-                case 5: return Color.Brown; // 5 мин
-                case 6: return Color.Cyan; // 6 мин
-                case 7: return Color.Black; // 7 мин
-                case 8: return Color.Gray; // 8 мин
-                default: return Color.Black; // На всякий случай
-            }
-        }
-
-        private void CheckForWin()
-        {
-            if (cellsLeft == 0) // Если все клетки открыты
-            {
-                timer.Stop();
-                MessageBox.Show("Поздравляем! Вы выиграли!", "Победа", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                GoToMainMenu();
-            }
-        }
-
-        private void RevealAllMines()
-        {
-            foreach (Button button in buttons)
-            {
-                if (button.Tag.Equals(true)) // Если это мина
+                for (int j = -1; j <= 1; j++)
                 {
-                    button.BackColor = Color.Red; // Открываем мину
+                    int adjacentX = x + j;
+                    int adjacentY = y + i;
+                    if (adjacentX >= 0 && adjacentX < cols && adjacentY >= 0 && adjacentY < rows)
+                    {
+                        Button adjacentButton = buttons[adjacentY, adjacentX];
+                        if (!adjacentButton.Enabled)
+                        {
+                            continue;
+                        }
+                        int count = CountAdjacentMines(adjacentX, adjacentY);
+                        if (count > 0)
+                        {
+                            adjacentButton.Text = count.ToString(); // Show the count of adjacent mines
+                        }
+                        else
+                        {
+                            adjacentButton.Enabled = false; // Disable the button
+                            OpenAdjacentCells(adjacentX, adjacentY); // Open adjacent cells
+                        }
+                        cellsLeft--;
+                        if (cellsLeft == 0) // If all non-mine cells are opened
+                        {
+                            WinGame();
+                        }
+                    }
                 }
             }
         }
 
-        private void RestartGame()
+        private void GameOver()
         {
-            // Логика перезапуска игры
-            this.Controls.Clear(); // Очищаем текущие элементы управления
-            CreateButtons(); // Создаем кнопки заново
-            PlaceMines(); // Размещаем мины заново
-            timeElapsed = 0; // Сбрасываем время
-            StartTimer(); // Запускаем таймер заново
+            timer.Stop();
+            MessageBox.Show("Game Over!");
+            this.Close();
         }
 
-            private void GoToMainMenu()
+        private void WinGame()
         {
-            MenuForm menuForm = new MenuForm();
-            menuForm.ShowDialog(); // Отображаем меню
-            this.Close(); // Закрываем текущую форму
+            timer.Stop();
+            MessageBox.Show("Congratulations, you won!");
+            this.Close();
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            timeElapsed++;
+            this.Text = "Minesweeper - Time: " + timeElapsed + " seconds";
         }
     }
 }
+
