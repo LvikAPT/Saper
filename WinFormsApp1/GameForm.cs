@@ -221,31 +221,6 @@ namespace Minesweeper
             }
         }
 
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
-        {
-            if (keyData == Keys.Escape)
-            {
-                if (isPaused)
-                {
-                    ResumeGame(); // Возобновляем игру
-                }
-                else
-                {
-                    PauseGame(); // Приостанавливаем игру
-                }
-                return true; // Обрабатываем событие
-            }
-            return base.ProcessCmdKey(ref msg, keyData);
-        }
-
-        private void PauseGame()
-        {
-            isPaused = true; // Устанавливаем флаг паузы
-            timer.Stop(); // Останавливаем таймер
-            PauseForm pauseForm = new PauseForm(this);
-            pauseForm.ShowDialog(); // Показываем окно паузы
-        }
-
         public void ResumeGame()
         {
             isPaused = false; // Сбрасываем флаг паузы
