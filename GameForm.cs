@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace Saper.Forms
@@ -9,9 +10,12 @@ namespace Saper.Forms
         private int cols;
         private int mines;
         private int flags;
-        private System.Windows.Forms.Timer timer;
+        private System.Windows.Forms.Timer timer; // Поле таймера
         private int timeLeft;
         private bool[,] mineField; // Поле с минами
+        private int[,] mineCount; // Количество мин вокруг каждой клетки
+        private bool[,] revealed; // Открытые клетки
+        private bool[,] flagged; // Помеченные клетки
 
         public GameForm(int rows, int cols, int mines)
         {
@@ -25,7 +29,7 @@ namespace Saper.Forms
 
         private void InitializeGame()
         {
-            timer = new System.Windows.Forms.Timer();
+            timer = new System.Windows.Forms.Timer(); // Инициализация таймера
             timer.Interval = 1000; // 1 секунда
             timer.Tick += Timer_Tick;
             timeLeft = 300; // 5 минут
@@ -43,9 +47,15 @@ namespace Saper.Forms
                 gameGrid.Rows[i].Height = 30; // Высота строки
             }
 
-            // Инициализация поля с минами
+            // Инициализация полей
             mineField = new bool[rows, cols];
+            mineCount = new int[rows, cols];
+            revealed = new bool[rows, cols];
+            flagged = new bool[rows, cols];
+
             PlaceMines();
+            CalculateMineCounts();
+            UpdateFlagCount();
         }
 
         private void PlaceMines()
@@ -60,6 +70,31 @@ namespace Saper.Forms
                     col = rand.Next(cols);
                 } while (mineField[row, col]); // Повторяем, пока не найдем пустую ячейку
                 mineField[row, col] = true; // Устанавливаем мину
+            }
+        }
+
+        private void CalculateMineCounts()
+        {
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    if (mineField[r, c])
+                    {
+                        for (int i = -1; i <= 1; i++)
+                        {
+                            for (int j = -1; j <= 1; j++)
+                            {
+                                int newRow = r + i;
+                                int newCol = c + j;
+                                if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols)
+                                {
+                                    mineCount[newRow, newCol]++;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -87,12 +122,13 @@ namespace Saper.Forms
             timer.Start();
         }
 
-        // Добавьте обработчик события для ячеек игрового поля
         private void gameGrid_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0) return; // Игнорируем заголовки
 
             // Логика открытия ячейки
+            if (flagged[e.RowIndex, e.ColumnIndex]) return; // Если клетка помечена флажком, ничего не делаем
+
             if (mineField[e.RowIndex, e.ColumnIndex])
             {
                 MessageBox.Show("Вы попали на мину! Игра окончена.", "Проигрыш");
@@ -100,8 +136,90 @@ namespace Saper.Forms
             }
             else
             {
-                // Открыть ячейку (например, изменить цвет или текст)
-                gameGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.BackColor = System.Drawing.Color.LightGreen;
+                RevealCell(e.RowIndex, e.ColumnIndex);
+                CheckWinCondition();
+            }
+        }
+
+        private void RevealCell(int row, int col)
+        {
+            if (revealed[row, col]) return; // Если клетка уже открыта, ничего не делаем
+
+            revealed[row, col] = true;
+            gameGrid.Rows[row].Cells[col].Style.BackColor = Color.LightGreen;
+
+            if (mineCount[row, col] > 0)
+            {
+                gameGrid.Rows[row].Cells[col].Value = mineCount[row, col]; // Показываем количество мин вокруг
+            }
+            else
+            {
+                // Если вокруг нет мин, открываем соседние клетки
+                for (int i = -1; i <= 1; i++)
+                {
+                    for (int j = -1; j <= 1; j++)
+                    {
+                        int newRow = row + i;
+                        int newCol = col + j;
+                        if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols)
+                        {
+                            RevealCell(newRow, newCol);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void gameGrid_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                // Логика установки флажка
+                if (revealed[e.RowIndex, e.ColumnIndex]) return; // Если клетка открыта, ничего не делаем
+
+                flagged[e.RowIndex, e.ColumnIndex] = !flagged[e.RowIndex, e.ColumnIndex];
+                gameGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.BackColor = flagged[e.RowIndex, e.ColumnIndex] ? Color.Red : Color.White;
+                UpdateFlagCount();
+            }
+        }
+
+        private void UpdateFlagCount()
+        {
+            // Обновление отображения количества оставшихся флажков
+            lblFlags.Text = $"Осталось флажков: {flags - CountFlags()}";
+        }
+
+        private int CountFlags()
+        {
+            int count = 0;
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    if (flagged[r, c]) count++;
+                }
+            }
+            return count;
+        }
+
+        private void CheckWinCondition()
+        {
+            bool allCellsRevealed = true;
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    if (!mineField[r, c] && !revealed[r, c])
+                    {
+                        allCellsRevealed = false;
+                    }
+                }
+            }
+
+            if (allCellsRevealed && CountFlags() == mines)
+            {
+                MessageBox.Show("Поздравляем! Вы выиграли!", "Победа");
+                this.Close();
             }
         }
     }
