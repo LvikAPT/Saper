@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Windows.Forms;
 
-namespace Minesweeper
+namespace Saper.Forms
 {
     public partial class GameForm : Form
     {
@@ -11,7 +9,7 @@ namespace Minesweeper
         private int cols;
         private int mines;
         private int flags;
-        private Timer timer;
+        private System.Windows.Forms.Timer timer; // Указание на Timer из Windows.Forms
         private int timeLeft;
 
         public GameForm(int rows, int cols, int mines)
@@ -26,15 +24,11 @@ namespace Minesweeper
 
         private void InitializeGame()
         {
-            // Инициализация игрового поля и таймера
-            timer = new Timer();
+            timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000; // 1 секунда
             timer.Tick += Timer_Tick;
             timeLeft = 300; // 5 минут
             timer.Start();
-
-            // Создание игрового поля
-            // ...
         }
 
         private void Timer_Tick(object sender, EventArgs e)
