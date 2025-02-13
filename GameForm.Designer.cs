@@ -5,7 +5,7 @@
         private System.ComponentModel.IContainer components = null;
         private System.Windows.Forms.Label lblTime;
         private System.Windows.Forms.Button btnPause;
-        private System.Windows.Forms.DataGridView gameGrid; // Игровое поле
+        private System.Windows.Forms.DataGridView gameGrid;
 
         protected override void Dispose(bool disposing)
         {
@@ -20,7 +20,7 @@
         {
             this.lblTime = new System.Windows.Forms.Label();
             this.btnPause = new System.Windows.Forms.Button();
-            this.gameGrid = new System.Windows.Forms.DataGridView(); // Инициализация игрового поля
+            this.gameGrid = new System.Windows.Forms.DataGridView();
             ((System.ComponentModel.ISupportInitialize)(this.gameGrid)).BeginInit();
             this.SuspendLayout();
             // 
@@ -47,7 +47,7 @@
             this.gameGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.gameGrid.Location = new System.Drawing.Point(12, 60);
             this.gameGrid.Name = "gameGrid";
-            this.gameGrid.Size = new System.Drawing.Size(760, 400); // Размер игрового поля
+            this.gameGrid.Size = new System.Drawing.Size(760, 400);
             this.gameGrid.TabIndex = 2;
             // 
             // GameForm
