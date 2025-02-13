@@ -9,8 +9,9 @@ namespace Saper.Forms
         private int cols;
         private int mines;
         private int flags;
-        private System.Windows.Forms.Timer timer; // Указание на Timer из Windows.Forms
+        private System.Windows.Forms.Timer timer;
         private int timeLeft;
+        private bool[,] mineField; // Поле с минами
 
         public GameForm(int rows, int cols, int mines)
         {
@@ -41,6 +42,25 @@ namespace Saper.Forms
             {
                 gameGrid.Rows[i].Height = 30; // Высота строки
             }
+
+            // Инициализация поля с минами
+            mineField = new bool[rows, cols];
+            PlaceMines();
+        }
+
+        private void PlaceMines()
+        {
+            Random rand = new Random();
+            for (int i = 0; i < mines; i++)
+            {
+                int row, col;
+                do
+                {
+                    row = rand.Next(rows);
+                    col = rand.Next(cols);
+                } while (mineField[row, col]); // Повторяем, пока не найдем пустую ячейку
+                mineField[row, col] = true; // Устанавливаем мину
+            }
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -65,6 +85,24 @@ namespace Saper.Forms
         public void ResumeGame()
         {
             timer.Start();
+        }
+
+        // Добавьте обработчик события для ячеек игрового поля
+        private void gameGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return; // Игнорируем заголовки
+
+            // Логика открытия ячейки
+            if (mineField[e.RowIndex, e.ColumnIndex])
+            {
+                MessageBox.Show("Вы попали на мину! Игра окончена.", "Проигрыш");
+                this.Close();
+            }
+            else
+            {
+                // Открыть ячейку (например, изменить цвет или текст)
+                gameGrid.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.BackColor = System.Drawing.Color.LightGreen;
+            }
         }
     }
 }

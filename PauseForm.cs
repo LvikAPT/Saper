@@ -20,6 +20,7 @@ namespace Saper.Forms
 
         private void btnMainMenu_Click(object sender, EventArgs e)
         {
+            gameForm.Close(); // Закрываем игровое поле
             MainForm mainForm = new MainForm();
             mainForm.Show();
             this.Close(); // Закрыть форму паузы и открыть главное меню
