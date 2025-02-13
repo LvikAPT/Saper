@@ -5,6 +5,7 @@
         private System.ComponentModel.IContainer components = null;
         private System.Windows.Forms.Label lblTime;
         private System.Windows.Forms.Button btnPause;
+        private System.Windows.Forms.DataGridView gameGrid; // Игровое поле
 
         protected override void Dispose(bool disposing)
         {
@@ -19,6 +20,8 @@
         {
             this.lblTime = new System.Windows.Forms.Label();
             this.btnPause = new System.Windows.Forms.Button();
+            this.gameGrid = new System.Windows.Forms.DataGridView(); // Инициализация игрового поля
+            ((System.ComponentModel.ISupportInitialize)(this.gameGrid)).BeginInit();
             this.SuspendLayout();
             // 
             // lblTime
@@ -39,12 +42,22 @@
             this.btnPause.UseVisualStyleBackColor = true;
             this.btnPause.Click += new System.EventHandler(this.btnPause_Click);
             // 
+            // gameGrid
+            // 
+            this.gameGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.gameGrid.Location = new System.Drawing.Point(12, 60);
+            this.gameGrid.Name = "gameGrid";
+            this.gameGrid.Size = new System.Drawing.Size(760, 400); // Размер игрового поля
+            this.gameGrid.TabIndex = 2;
+            // 
             // GameForm
             // 
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.gameGrid);
             this.Controls.Add(this.btnPause);
             this.Controls.Add(this.lblTime);
             this.Name = "GameForm";
+            ((System.ComponentModel.ISupportInitialize)(this.gameGrid)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
         }

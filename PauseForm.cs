@@ -15,8 +15,14 @@ namespace Saper.Forms
 
         private void btnResume_Click(object sender, EventArgs e)
         {
-            gameForm.ResumeGame();
-            this.Close();
+            this.Close(); // Закрыть форму паузы и вернуться к игре
+        }
+
+        private void btnMainMenu_Click(object sender, EventArgs e)
+        {
+            MainForm mainForm = new MainForm();
+            mainForm.Show();
+            this.Close(); // Закрыть форму паузы и открыть главное меню
         }
     }
 }

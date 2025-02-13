@@ -29,6 +29,18 @@ namespace Saper.Forms
             timer.Tick += Timer_Tick;
             timeLeft = 300; // 5 минут
             timer.Start();
+
+            // Инициализация игрового поля
+            gameGrid.ColumnCount = cols;
+            gameGrid.RowCount = rows;
+            for (int i = 0; i < cols; i++)
+            {
+                gameGrid.Columns[i].Width = 30; // Ширина колонки
+            }
+            for (int i = 0; i < rows; i++)
+            {
+                gameGrid.Rows[i].Height = 30; // Высота строки
+            }
         }
 
         private void Timer_Tick(object sender, EventArgs e)
